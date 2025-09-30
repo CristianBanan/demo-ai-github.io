@@ -1,0 +1,55 @@
+# Site settings
+title: Demo AI Blog
+email: your-email@example.com
+description: >- # this means to ignore newlines until "baseurl:"
+  A demo blog showcasing AI and technology topics.
+  Write an awesome description for your new site here.
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "https://cristianbanan.github.io" # the base hostname & protocol for your site
+twitter_username: your_username
+github_username: CristianBanan
+
+# Build settings
+markdown: kramdown
+theme: minima
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Exclude from processing
+exclude:
+  - .sass-cache/
+  - .jekyll-cache/
+  - gemfiles/
+  - Gemfile
+  - Gemfile.lock
+  - node_modules/
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+
+# Collections
+collections:
+  posts:
+    output: true
+    permalink: /:categories/:year/:month/:day/:title/
+
+# Pagination
+paginate: 5
+paginate_path: "/page:num/"
+
+# Default settings
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+      author: "Demo AI"
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "page"

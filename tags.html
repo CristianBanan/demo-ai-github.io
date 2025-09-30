@@ -1,0 +1,439 @@
+---
+layout: page
+title: Tags
+permalink: /tags/
+---
+
+<div class="tags-page">
+    <h1>🏷️ Browse by Tags</h1>
+    <p class="page-description">Discover content by exploring tags. Tags provide a more granular way to find specific topics and technologies.</p>
+
+    {% assign all_tags = site.tags | sort %}
+    {% if all_tags.size > 0 %}
+        <div class="tags-overview">
+            <h2>📊 Tag Cloud</h2>
+            <div class="tag-cloud">
+                {% for tag in all_tags %}
+                    {% assign tag_posts_count = tag[1].size %}
+                    {% assign tag_size = tag_posts_count | times: 4 | divided_by: site.tags.size | plus: 1 %}
+                    <a href="#{{ tag[0] | slugify }}" 
+                       class="tag-cloud-item" 
+                       style="font-size: {{ tag_size | times: 0.5 | plus: 0.8 }}rem;"
+                       title="{{ tag_posts_count }} post{% if tag_posts_count != 1 %}s{% endif %}">
+                        {{ tag[0] }}
+                        <span class="tag-count">{{ tag_posts_count }}</span>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="tags-filter">
+            <h2>🔍 Filter Tags</h2>
+            <input type="text" id="tag-search" placeholder="Search tags..." class="search-input">
+            <div class="tag-stats">
+                <span id="visible-tags">{{ all_tags.size }}</span> of {{ all_tags.size }} tags shown
+            </div>
+        </div>
+
+        <div class="tags-content" id="tags-container">
+            {% for tag in all_tags %}
+                <div class="tag-section" id="{{ tag[0] | slugify }}" data-tag="{{ tag[0] | downcase }}">
+                    <h2 class="tag-title">
+                        <span class="tag-icon">#</span>
+                        {{ tag[0] }}
+                        <span class="post-count-badge">{{ tag[1].size }} post{% if tag[1].size != 1 %}s{% endif %}</span>
+                    </h2>
+                    
+                    <div class="posts-list">
+                        {% assign sorted_posts = tag[1] | sort: 'date' | reverse %}
+                        {% for post in sorted_posts %}
+                            <article class="post-item">
+                                <div class="post-header">
+                                    <h3 class="post-title">
+                                        <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+                                    </h3>
+                                    <time class="post-date" datetime="{{ post.date | date_to_xmlschema }}">
+                                        {{ post.date | date: "%b %d, %Y" }}
+                                    </time>
+                                </div>
+                                
+                                {% if post.excerpt %}
+                                    <p class="post-excerpt">{{ post.excerpt | strip_html | truncatewords: 20 }}</p>
+                                {% endif %}
+                                
+                                <div class="post-meta">
+                                    {% if post.categories.size > 0 %}
+                                        <div class="post-categories">
+                                            {% for category in post.categories %}
+                                                <span class="category-tag">{{ category }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if post.author %}
+                                        <span class="post-author">by {{ post.author }}</span>
+                                    {% endif %}
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="no-tags">
+            <h2>🤔 No Tags Yet</h2>
+            <p>Posts haven't been tagged yet. Check back soon for organized content!</p>
+            <a href="{{ '/' | relative_url }}" class="btn">← Back to Home</a>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .tags-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .page-description {
+        font-size: 1.1em;
+        color: #666;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .tags-overview {
+        background: #f8f9fa;
+        padding: 2rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .tags-overview h2 {
+        margin-top: 0;
+        color: #333;
+    }
+
+    .tag-cloud {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .tag-cloud-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 25px;
+        text-decoration: none;
+        color: #007bff;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .tag-cloud-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(0,123,255,0.2);
+        background: #007bff;
+        color: white;
+    }
+
+    .tag-count {
+        background: #e3f2fd;
+        color: #1976d2;
+        border-radius: 10px;
+        padding: 0.2rem 0.6rem;
+        font-size: 0.75rem;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+
+    .tag-cloud-item:hover .tag-count {
+        background: rgba(255,255,255,0.2);
+        color: white;
+    }
+
+    .tags-filter {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .tags-filter h2 {
+        margin-top: 0;
+        margin-bottom: 1rem;
+        color: #333;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #ced4da;
+        border-radius: 5px;
+        font-size: 1rem;
+        margin-bottom: 1rem;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+    }
+
+    .tag-stats {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .tag-section {
+        margin-bottom: 3rem;
+        padding: 1.5rem;
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        scroll-margin-top: 100px;
+        transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .tag-section.hidden {
+        opacity: 0;
+        transform: translateY(-10px);
+        display: none;
+    }
+
+    .tag-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #007bff;
+        color: #333;
+    }
+
+    .tag-icon {
+        font-size: 1.2em;
+        color: #007bff;
+    }
+
+    .post-count-badge {
+        background: #e3f2fd;
+        color: #1976d2;
+        font-size: 0.8rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-weight: normal;
+        margin-left: auto;
+    }
+
+    .posts-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .post-item {
+        padding: 1rem;
+        border: 1px solid #f1f3f4;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+
+    .post-item:hover {
+        border-color: #007bff;
+        background: #f8f9fa;
+    }
+
+    .post-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
+        gap: 1rem;
+    }
+
+    .post-title {
+        margin: 0;
+        font-size: 1.1rem;
+        flex: 1;
+    }
+
+    .post-title a {
+        color: #333;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .post-title a:hover {
+        color: #007bff;
+    }
+
+    .post-date {
+        color: #666;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        font-weight: 500;
+    }
+
+    .post-excerpt {
+        color: #666;
+        line-height: 1.5;
+        margin: 0.5rem 0;
+        font-size: 0.95rem;
+    }
+
+    .post-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .post-categories {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .category-tag {
+        background: #fff3cd;
+        color: #856404;
+        padding: 0.2rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+    }
+
+    .post-author {
+        color: #666;
+        font-style: italic;
+    }
+
+    .no-tags {
+        text-align: center;
+        padding: 3rem 0;
+    }
+
+    .btn {
+        display: inline-block;
+        background: #007bff;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 5px;
+        text-decoration: none;
+        margin-top: 1rem;
+        transition: background-color 0.2s ease;
+    }
+
+    .btn:hover {
+        background: #0056b3;
+        color: white;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .tag-cloud {
+            gap: 0.5rem;
+        }
+
+        .post-header {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .post-meta {
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: flex-start;
+        }
+
+        .tags-page {
+            padding: 0 15px;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('tag-search');
+        const tagsContainer = document.getElementById('tags-container');
+        const visibleTagsCount = document.getElementById('visible-tags');
+        const allTagSections = document.querySelectorAll('.tag-section');
+        const totalTags = allTagSections.length;
+
+        // Smooth scrolling for tag cloud links
+        const tagCloudItems = document.querySelectorAll('.tag-cloud-item');
+        tagCloudItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Search functionality
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                let visibleCount = 0;
+
+                allTagSections.forEach(section => {
+                    const tagName = section.dataset.tag;
+                    const shouldShow = tagName.includes(searchTerm) || searchTerm === '';
+
+                    if (shouldShow) {
+                        section.classList.remove('hidden');
+                        visibleCount++;
+                    } else {
+                        section.classList.add('hidden');
+                    }
+                });
+
+                visibleTagsCount.textContent = visibleCount;
+
+                // Show message if no results
+                const noResultsMessage = document.querySelector('.no-results-message');
+                if (visibleCount === 0 && searchTerm !== '') {
+                    if (!noResultsMessage) {
+                        const message = document.createElement('div');
+                        message.className = 'no-results-message';
+                        message.innerHTML = `
+                            <div style="text-align: center; padding: 2rem; color: #666;">
+                                <h3>No tags found</h3>
+                                <p>Try a different search term or <a href="#" onclick="document.getElementById('tag-search').value=''; document.getElementById('tag-search').dispatchEvent(new Event('input'));">clear the search</a>.</p>
+                            </div>
+                        `;
+                        tagsContainer.appendChild(message);
+                    }
+                } else if (noResultsMessage) {
+                    noResultsMessage.remove();
+                }
+            });
+
+            // Clear search on Escape key
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    this.value = '';
+                    this.dispatchEvent(new Event('input'));
+                }
+            });
+        }
+    });
+</script>

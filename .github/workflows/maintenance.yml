@@ -1,0 +1,86 @@
+name: Scheduled Maintenance
+
+on:
+  schedule:
+    # Run every Sunday at 2 AM UTC
+    - cron: '0 2 * * 0'
+  
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  maintenance:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📂 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 💎 Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: 🔄 Update dependencies
+        run: |
+          echo "## Weekly Maintenance Report 🔧" >> $GITHUB_STEP_SUMMARY
+          echo "### Dependency Status:" >> $GITHUB_STEP_SUMMARY
+          
+          # Check for outdated gems
+          bundle outdated > outdated_gems.txt 2>&1 || true
+          if [ -s outdated_gems.txt ]; then
+            echo "Outdated gems found:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            head -20 outdated_gems.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ All gems are up to date" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: 🧹 Content cleanup
+        run: |
+          echo "### Content Analysis:" >> $GITHUB_STEP_SUMMARY
+          
+          # Find posts without excerpts
+          POSTS_NO_EXCERPT=$(find _posts -name "*.md" -exec grep -L "excerpt:" {} \; 2>/dev/null | wc -l)
+          echo "- Posts without excerpts: $POSTS_NO_EXCERPT" >> $GITHUB_STEP_SUMMARY
+          
+          # Find posts without categories
+          POSTS_NO_CATEGORIES=$(find _posts -name "*.md" -exec grep -L "categories:" {} \; 2>/dev/null | wc -l)
+          echo "- Posts without categories: $POSTS_NO_CATEGORIES" >> $GITHUB_STEP_SUMMARY
+          
+          # Find posts without tags
+          POSTS_NO_TAGS=$(find _posts -name "*.md" -exec grep -L "tags:" {} \; 2>/dev/null | wc -l)
+          echo "- Posts without tags: $POSTS_NO_TAGS" >> $GITHUB_STEP_SUMMARY
+
+      - name: 📈 Generate analytics
+        run: |
+          echo "### Blog Analytics:" >> $GITHUB_STEP_SUMMARY
+          
+          # Count posts by month
+          echo "Recent posting activity:" >> $GITHUB_STEP_SUMMARY
+          find _posts -name "*.md" | sed 's/.*\/\([0-9]\{4\}-[0-9]\{2\}\).*/\1/' | sort | uniq -c | tail -6 >> $GITHUB_STEP_SUMMARY
+          
+          # Count by categories
+          echo "Top categories:" >> $GITHUB_STEP_SUMMARY
+          find _posts -name "*.md" -exec grep "^categories:" {} \; | sed 's/categories: *\[\(.*\)\]/\1/' | tr ',' '\n' | sed 's/^ *//;s/ *$//' | sort | uniq -c | sort -nr | head -5 >> $GITHUB_STEP_SUMMARY
+
+      - name: 🔍 SEO health check
+        run: |
+          echo "### SEO Health Check:" >> $GITHUB_STEP_SUMMARY
+          
+          # Check for posts with very long titles
+          LONG_TITLES=$(find _posts -name "*.md" -exec grep "^title:" {} \; | awk -F: '{print length($2)}' | awk '$1 > 60' | wc -l)
+          echo "- Posts with titles > 60 chars: $LONG_TITLES" >> $GITHUB_STEP_SUMMARY
+          
+          # Check for missing meta descriptions
+          MISSING_EXCERPTS=$(find _posts -name "*.md" -exec grep -L "excerpt:" {} \; 2>/dev/null | wc -l)
+          echo "- Posts missing excerpts: $MISSING_EXCERPTS" >> $GITHUB_STEP_SUMMARY
+
+      - name: 📊 Performance metrics
+        run: |
+          echo "### Performance Metrics:" >> $GITHUB_STEP_SUMMARY
+          echo "- Repository size: $(du -sh . | cut -f1)" >> $GITHUB_STEP_SUMMARY
+          echo "- Asset count: $(find assets -type f 2>/dev/null | wc -l)" >> $GITHUB_STEP_SUMMARY
+          echo "- Total markdown files: $(find . -name "*.md" | wc -l)" >> $GITHUB_STEP_SUMMARY
+          echo "- Last update: $(date)" >> $GITHUB_STEP_SUMMARY

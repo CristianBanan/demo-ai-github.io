@@ -1,0 +1,81 @@
+name: Content Quality Check
+
+on:
+  pull_request:
+    paths:
+      - '_posts/**'
+      - '_drafts/**'
+      - '*.md'
+  
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📂 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📝 Check content quality
+        run: |
+          echo "## Content Quality Report 📝" >> $GITHUB_STEP_SUMMARY
+          
+          # Check for new posts
+          NEW_POSTS=$(git diff --name-only origin/main...HEAD | grep "^_posts/" || true)
+          if [ -n "$NEW_POSTS" ]; then
+            echo "### New Posts:" >> $GITHUB_STEP_SUMMARY
+            echo "$NEW_POSTS" | while read post; do
+              echo "- $post" >> $GITHUB_STEP_SUMMARY
+            done
+          fi
+          
+          # Validate frontmatter in new posts
+          echo "$NEW_POSTS" | while read post; do
+            if [ -f "$post" ]; then
+              echo "Checking $post..."
+              
+              # Check for required frontmatter fields
+              if ! head -20 "$post" | grep -q "^title:"; then
+                echo "⚠️ Warning: $post missing title" >> $GITHUB_STEP_SUMMARY
+              fi
+              
+              if ! head -20 "$post" | grep -q "^date:"; then
+                echo "⚠️ Warning: $post missing date" >> $GITHUB_STEP_SUMMARY
+              fi
+              
+              if ! head -20 "$post" | grep -q "^categories:"; then
+                echo "ℹ️ Info: $post missing categories" >> $GITHUB_STEP_SUMMARY
+              fi
+              
+              if ! head -20 "$post" | grep -q "^tags:"; then
+                echo "ℹ️ Info: $post missing tags" >> $GITHUB_STEP_SUMMARY
+              fi
+              
+              # Check content length
+              WORD_COUNT=$(wc -w < "$post")
+              if [ "$WORD_COUNT" -lt 100 ]; then
+                echo "⚠️ Warning: $post is very short ($WORD_COUNT words)" >> $GITHUB_STEP_SUMMARY
+              elif [ "$WORD_COUNT" -gt 3000 ]; then
+                echo "ℹ️ Info: $post is quite long ($WORD_COUNT words)" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "✅ Good: $post has $WORD_COUNT words" >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
+          done
+
+      - name: 🔗 Check for broken links
+        run: |
+          echo "### Link Check Results:" >> $GITHUB_STEP_SUMMARY
+          
+          # Simple check for markdown links
+          find . -name "*.md" -not -path "./.git/*" | xargs grep -n "\[.*\](.*)" | head -10 >> $GITHUB_STEP_SUMMARY || true
+
+      - name: 📊 Generate statistics
+        run: |
+          echo "### Blog Statistics:" >> $GITHUB_STEP_SUMMARY
+          echo "- Total posts: $(find _posts -name "*.md" -o -name "*.markdown" | wc -l)" >> $GITHUB_STEP_SUMMARY
+          echo "- Total pages: $(find . -name "*.md" -not -path "./_posts/*" -not -path "./.git/*" | wc -l)" >> $GITHUB_STEP_SUMMARY
+          echo "- Repository size: $(du -sh . | cut -f1)" >> $GITHUB_STEP_SUMMARY

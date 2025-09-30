@@ -1,0 +1,336 @@
+---
+layout: page
+title: Categories
+permalink: /categories/
+---
+
+<div class="categories-page">
+    <h1>📁 Browse by Category</h1>
+    <p class="page-description">Explore posts organized by topic. Click on any category to see all related articles.</p>
+
+    {% assign categories_list = site.categories | sort %}
+    {% if categories_list.size > 0 %}
+        <div class="categories-overview">
+            <h2>📊 Categories Overview</h2>
+            <div class="category-stats">
+                {% for category in categories_list %}
+                    <span class="category-pill">
+                        <a href="#{{ category[0] | slugify }}">{{ category[0] | capitalize }}</a>
+                        <span class="post-count">{{ category[1].size }}</span>
+                    </span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="categories-content">
+            {% for category in categories_list %}
+                <div class="category-section" id="{{ category[0] | slugify }}">
+                    <h2 class="category-title">
+                        <span class="category-icon">📂</span>
+                        {{ category[0] | capitalize }}
+                        <span class="post-count-badge">{{ category[1].size }} post{% if category[1].size != 1 %}s{% endif %}</span>
+                    </h2>
+                    
+                    <div class="posts-grid">
+                        {% assign sorted_posts = category[1] | sort: 'date' | reverse %}
+                        {% for post in sorted_posts %}
+                            <article class="post-card">
+                                <div class="post-meta">
+                                    <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%B %d, %Y" }}</time>
+                                    {% if post.tags.size > 0 %}
+                                        <div class="post-tags">
+                                            {% for tag in post.tags limit:3 %}
+                                                <span class="tag">#{{ tag }}</span>
+                                            {% endfor %}
+                                            {% if post.tags.size > 3 %}
+                                                <span class="tag-more">+{{ post.tags.size | minus: 3 }}</span>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <h3 class="post-title">
+                                    <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+                                </h3>
+                                
+                                {% if post.excerpt %}
+                                    <p class="post-excerpt">{{ post.excerpt | strip_html | truncatewords: 25 }}</p>
+                                {% endif %}
+                                
+                                <div class="post-footer">
+                                    {% if post.author %}
+                                        <span class="post-author">by {{ post.author }}</span>
+                                    {% endif %}
+                                    <a href="{{ post.url | relative_url }}" class="read-more">Read more →</a>
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="no-categories">
+            <h2>🤔 No Categories Yet</h2>
+            <p>Posts haven't been categorized yet. Check back soon for organized content!</p>
+            <a href="{{ '/' | relative_url }}" class="btn">← Back to Home</a>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .categories-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .page-description {
+        font-size: 1.1em;
+        color: #666;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .categories-overview {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+
+    .categories-overview h2 {
+        margin-top: 0;
+        color: #333;
+    }
+
+    .category-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .category-pill {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 20px;
+        padding: 0.5rem 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .category-pill:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .category-pill a {
+        text-decoration: none;
+        color: #007bff;
+        font-weight: 500;
+    }
+
+    .post-count {
+        background: #007bff;
+        color: white;
+        border-radius: 12px;
+        padding: 0.2rem 0.5rem;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+
+    .category-section {
+        margin-bottom: 3rem;
+        scroll-margin-top: 100px; /* For smooth scrolling with fixed headers */
+    }
+
+    .category-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #007bff;
+    }
+
+    .category-icon {
+        font-size: 1.2em;
+    }
+
+    .post-count-badge {
+        background: #e3f2fd;
+        color: #1976d2;
+        font-size: 0.8rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-weight: normal;
+        margin-left: auto;
+    }
+
+    .posts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .post-card {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 1.5rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .post-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+
+    .post-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .post-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+
+    .tag {
+        background: #f1f3f4;
+        color: #5f6368;
+        padding: 0.2rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        text-decoration: none;
+    }
+
+    .tag-more {
+        background: #e8f0fe;
+        color: #1a73e8;
+        padding: 0.2rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .post-title {
+        margin: 0 0 1rem 0;
+        font-size: 1.25rem;
+        line-height: 1.3;
+    }
+
+    .post-title a {
+        color: #333;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .post-title a:hover {
+        color: #007bff;
+    }
+
+    .post-excerpt {
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+
+    .post-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.9rem;
+        margin-top: auto;
+    }
+
+    .post-author {
+        color: #666;
+        font-style: italic;
+    }
+
+    .read-more {
+        color: #007bff;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .read-more:hover {
+        color: #0056b3;
+        text-decoration: underline;
+    }
+
+    .no-categories {
+        text-align: center;
+        padding: 3rem 0;
+    }
+
+    .btn {
+        display: inline-block;
+        background: #007bff;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 5px;
+        text-decoration: none;
+        margin-top: 1rem;
+        transition: background-color 0.2s ease;
+    }
+
+    .btn:hover {
+        background: #0056b3;
+        color: white;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .posts-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .category-stats {
+            justify-content: center;
+        }
+
+        .post-footer {
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: flex-start;
+        }
+
+        .post-meta {
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: flex-start;
+        }
+    }
+</style>
+
+<script>
+    // Smooth scrolling for category links
+    document.addEventListener('DOMContentLoaded', function() {
+        const categoryLinks = document.querySelectorAll('.category-pill a');
+        
+        categoryLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    });
+</script>
